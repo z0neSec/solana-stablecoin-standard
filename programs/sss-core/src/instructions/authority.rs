@@ -20,7 +20,7 @@ pub struct TransferAuthority<'info> {
     pub stablecoin: Account<'info, StablecoinState>,
 }
 
-pub fn handler(ctx: Context<TransferAuthority>, new_authority: Pubkey) -> Result<()> {
+pub fn transfer_authority_handler(ctx: Context<TransferAuthority>, new_authority: Pubkey) -> Result<()> {
     let stablecoin = &mut ctx.accounts.stablecoin;
     let old_authority = stablecoin.authority;
 

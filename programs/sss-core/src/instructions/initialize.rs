@@ -1,8 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_2022;
-use anchor_spl::token_interface::{Mint, TokenInterface};
+use anchor_spl::token_interface::TokenInterface;
 use spl_token_2022::extension::ExtensionType;
-use spl_token_2022::instruction::AuthorityType;
 
 use crate::constants::*;
 use crate::error::SSSError;
@@ -103,7 +101,7 @@ pub struct Initialize<'info> {
     pub rent: Sysvar<'info, Rent>,
 }
 
-pub fn handler(ctx: Context<Initialize>, params: InitializeParams) -> Result<()> {
+pub fn initialize_handler(ctx: Context<Initialize>, params: InitializeParams) -> Result<()> {
     params.validate()?;
 
     let features = params.features();

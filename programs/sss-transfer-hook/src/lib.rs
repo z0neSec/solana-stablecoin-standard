@@ -7,7 +7,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("HookSSS111111111111111111111111111111111111");
+declare_id!("Z6XbtKYyRLYJDogwXUmWti3v28ws98bKE1Mo9DvZs4c");
 
 /// SSS Transfer Hook — Enforces blacklist checks on every Token-2022 transfer.
 ///
@@ -25,14 +25,14 @@ pub mod sss_transfer_hook {
         ctx: Context<InitializeHook>,
         stablecoin: Pubkey,
     ) -> Result<()> {
-        instructions::initialize::handler(ctx, stablecoin)
+        instructions::initialize::initialize_hook_handler(ctx, stablecoin)
     }
 
     /// The transfer hook execution function.
     /// Called automatically by Token-2022 on every transfer_checked.
     /// Checks source and destination against the blacklist.
     pub fn transfer_hook(ctx: Context<TransferHookExec>, amount: u64) -> Result<()> {
-        instructions::execute::handler(ctx, amount)
+        instructions::execute::execute_handler(ctx, amount)
     }
 
     /// SPL Transfer Hook Interface fallback.

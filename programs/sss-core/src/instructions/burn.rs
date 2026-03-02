@@ -48,7 +48,7 @@ pub struct BurnTokens<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn handler(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
+pub fn burn_handler(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
     require!(amount > 0, SSSError::ZeroAmount);
 
     let stablecoin = &mut ctx.accounts.stablecoin;

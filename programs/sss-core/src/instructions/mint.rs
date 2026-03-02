@@ -55,7 +55,7 @@ pub struct MintTokens<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn handler(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
+pub fn mint_handler(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
     require!(amount > 0, SSSError::ZeroAmount);
 
     let stablecoin = &mut ctx.accounts.stablecoin;

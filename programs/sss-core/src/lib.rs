@@ -8,7 +8,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("CoreSSS111111111111111111111111111111111111");
+declare_id!("E5T7B4F3kZhTPaiso7LDdNo2p3Z66qbqfJvZ1rosZuTs");
 
 /// Solana Stablecoin Standard — Core Program
 ///
@@ -29,18 +29,18 @@ pub mod sss_core {
     /// Creates the Token-2022 mint with requested extensions and sets up
     /// the stablecoin state PDA. The caller becomes the master authority.
     pub fn initialize(ctx: Context<Initialize>, params: InitializeParams) -> Result<()> {
-        instructions::initialize::handler(ctx, params)
+        instructions::initialize::initialize_handler(ctx, params)
     }
 
     /// Mint tokens to a recipient. Caller must have the Minter role.
     /// Respects per-minter quotas and global supply cap if configured.
     pub fn mint_tokens(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
-        instructions::mint::handler(ctx, amount)
+        instructions::mint::mint_handler(ctx, amount)
     }
 
     /// Burn tokens from the caller's account. Caller must have the Burner role.
     pub fn burn_tokens(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
-        instructions::burn::handler(ctx, amount)
+        instructions::burn::burn_handler(ctx, amount)
     }
 
     /// Freeze a token account. Caller must have the Freezer role.
@@ -87,7 +87,7 @@ pub mod sss_core {
     /// Transfer master authority to a new address.
     /// This is a critical operation — the old authority loses all control.
     pub fn transfer_authority(ctx: Context<TransferAuthority>, new_authority: Pubkey) -> Result<()> {
-        instructions::authority::handler(ctx, new_authority)
+        instructions::authority::transfer_authority_handler(ctx, new_authority)
     }
 
     // ─── Layer 2: SSS-2 Compliance Operations ───────────────────────
@@ -110,7 +110,7 @@ pub mod sss_core {
     /// Caller must have the Seizer role. Account must be frozen first.
     /// Fails gracefully if compliance module was not enabled at initialization.
     pub fn seize(ctx: Context<Seize>, amount: u64) -> Result<()> {
-        instructions::seize::handler(ctx, amount)
+        instructions::seize::seize_handler(ctx, amount)
     }
 
     // ─── Views ───────────────────────────────────────────────────────

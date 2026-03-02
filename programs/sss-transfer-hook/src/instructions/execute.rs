@@ -1,6 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_interface::TokenAccount;
-use spl_transfer_hook_interface::collect_extra_account_metas_signer_seeds;
 
 use crate::error::HookError;
 use crate::state::HookState;
@@ -53,7 +51,7 @@ pub struct TransferHookExec<'info> {
     pub dest_blacklist: UncheckedAccount<'info>,
 }
 
-pub fn handler(ctx: Context<TransferHookExec>, _amount: u64) -> Result<()> {
+pub fn execute_handler(ctx: Context<TransferHookExec>, _amount: u64) -> Result<()> {
     let hook_state = &mut ctx.accounts.hook_state;
 
     require!(hook_state.is_active, HookError::HookDeactivated);

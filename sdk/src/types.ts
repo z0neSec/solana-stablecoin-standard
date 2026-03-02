@@ -2,12 +2,12 @@ import { PublicKey } from "@solana/web3.js";
 
 // Core program ID (replace with actual after deployment)
 export const SSS_CORE_PROGRAM_ID = new PublicKey(
-  "CoreSSS111111111111111111111111111111111111"
+  "E5T7B4F3kZhTPaiso7LDdNo2p3Z66qbqfJvZ1rosZuTs"
 );
 
 // Transfer hook program ID (replace with actual after deployment)
 export const SSS_HOOK_PROGRAM_ID = new PublicKey(
-  "HookSSS111111111111111111111111111111111111"
+  "Z6XbtKYyRLYJDogwXUmWti3v28ws98bKE1Mo9DvZs4c"
 );
 
 // ─── Feature Flags ───────────────────────────────────────────────────────────

@@ -4,12 +4,12 @@ seeds = true
 skip-lint = false
 
 [programs.localnet]
-sss_core = "CoreSSS111111111111111111111111111111111111"
-sss_transfer_hook = "HookSSS111111111111111111111111111111111111"
+sss_core = "E5T7B4F3kZhTPaiso7LDdNo2p3Z66qbqfJvZ1rosZuTs"
+sss_transfer_hook = "Z6XbtKYyRLYJDogwXUmWti3v28ws98bKE1Mo9DvZs4c"
 
 [programs.devnet]
-sss_core = "CoreSSS111111111111111111111111111111111111"
-sss_transfer_hook = "HookSSS111111111111111111111111111111111111"
+sss_core = "E5T7B4F3kZhTPaiso7LDdNo2p3Z66qbqfJvZ1rosZuTs"
+sss_transfer_hook = "Z6XbtKYyRLYJDogwXUmWti3v28ws98bKE1Mo9DvZs4c"
 
 [registry]
 url = "https://api.apr.dev"

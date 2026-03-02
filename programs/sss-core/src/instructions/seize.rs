@@ -53,7 +53,7 @@ pub struct Seize<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn handler(ctx: Context<Seize>, amount: u64) -> Result<()> {
+pub fn seize_handler(ctx: Context<Seize>, amount: u64) -> Result<()> {
     require!(amount > 0, SSSError::ZeroAmount);
 
     let mint_key = ctx.accounts.mint.key();

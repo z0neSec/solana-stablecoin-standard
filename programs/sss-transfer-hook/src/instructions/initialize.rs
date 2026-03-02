@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 use crate::state::HookState;
-
-pub const HOOK_STATE_SEED: &[u8] = b"hook_state";
+use super::execute::HOOK_STATE_SEED;
 
 #[derive(Accounts)]
 pub struct InitializeHook<'info> {
@@ -24,7 +23,7 @@ pub struct InitializeHook<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<InitializeHook>, stablecoin: Pubkey) -> Result<()> {
+pub fn initialize_hook_handler(ctx: Context<InitializeHook>, stablecoin: Pubkey) -> Result<()> {
     let hook_state = &mut ctx.accounts.hook_state;
     hook_state.mint = ctx.accounts.mint.key();
     hook_state.stablecoin = stablecoin;

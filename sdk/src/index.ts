@@ -54,6 +54,7 @@ export {
   getMinterQuotaAddress,
   getBlacklistAddress,
   getHookStateAddress,
+  deriveStablecoinAddresses,
   STABLECOIN_SEED,
   ROLE_SEED,
   MINTER_QUOTA_SEED,

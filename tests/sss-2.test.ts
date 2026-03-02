@@ -13,14 +13,15 @@ import {
   getAccount,
 } from "@solana/spl-token";
 import { expect } from "chai";
+import { SssCore } from "../target/types/sss_core";
 
 const provider = anchor.AnchorProvider.env();
 anchor.setProvider(provider);
 
-const coreProgram = anchor.workspace.SssCore as Program<any>;
+const coreProgram = anchor.workspace.SssCore as Program<SssCore>;
 const hookProgram = anchor.workspace.SssTransferHook as Program<any>;
 
-// SSS-2 features: permanent_delegate | transfer_hook | default_frozen
+// SSS-2 features bitmask for assertion: permanent_delegate | transfer_hook | default_frozen
 const SSS2_FEATURES = 0b0111; // 7
 
 describe("SSS-2 Compliant Preset", () => {
@@ -73,18 +74,17 @@ describe("SSS-2 Compliant Preset", () => {
           symbol: "CUSD",
           uri: "https://example.com/cusd.json",
           decimals: 6,
-          features: SSS2_FEATURES,
           supplyCap: new anchor.BN(1_000_000_000_000), // 1M tokens
+          enablePermanentDelegate: true,
+          enableTransferHook: true,
+          enableDefaultFrozen: true,
+          enableConfidentialTransfers: false,
+          transferHookProgram: null,
         })
         .accounts({
-          payer: authority.publicKey,
           authority: authority.publicKey,
           mint: mint.publicKey,
-          stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .signers([mint])
         .rpc();
@@ -98,7 +98,6 @@ describe("SSS-2 Compliant Preset", () => {
 
     it("rejects transfer_hook + confidential_transfers combo", async () => {
       const badMint = Keypair.generate();
-      const INVALID_FEATURES = 0b1010; // transfer_hook + confidential
 
       const [badPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("stablecoin"), badMint.publicKey.toBuffer()],
@@ -121,24 +120,23 @@ describe("SSS-2 Compliant Preset", () => {
             symbol: "INV",
             uri: "",
             decimals: 6,
-            features: INVALID_FEATURES,
             supplyCap: new anchor.BN(0),
+            enablePermanentDelegate: false,
+            enableTransferHook: true,
+            enableDefaultFrozen: false,
+            enableConfidentialTransfers: true,
+            transferHookProgram: null,
           })
           .accounts({
-            payer: authority.publicKey,
             authority: authority.publicKey,
             mint: badMint.publicKey,
-            stablecoin: badPda,
-            masterRole: badRole,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
           })
           .signers([badMint])
           .rpc();
         expect.fail("Should have rejected invalid feature combo");
       } catch (err: any) {
-        expect(err.error?.errorCode?.code).to.equal("InvalidFeatureCombo");
+        expect(err.error?.errorCode?.code).to.equal("IncompatibleFeatures");
       }
     });
   });
@@ -161,15 +159,11 @@ describe("SSS-2 Compliant Preset", () => {
       );
 
       await coreProgram.methods
-        .grantRole({ roleType: { freezer: {} } })
-        .accounts({
+        .grantRole({ freezer: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: freezerRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
 
@@ -185,15 +179,11 @@ describe("SSS-2 Compliant Preset", () => {
       );
 
       await coreProgram.methods
-        .grantRole({ roleType: { minter: {} } })
-        .accounts({
+        .grantRole({ minter: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: minterRole,
-          target: authority.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: authority.publicKey,
         })
         .rpc();
     });
@@ -222,10 +212,8 @@ describe("SSS-2 Compliant Preset", () => {
         .freezeAccount()
         .accounts({
           freezer: user1.publicKey,
-          stablecoin: stablecoinPda,
-          freezerRole: freezerRolePda,
           mint: mint.publicKey,
-          targetAccount: ata,
+          tokenAccount: ata,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -252,10 +240,8 @@ describe("SSS-2 Compliant Preset", () => {
         .thawAccount()
         .accounts({
           freezer: user1.publicKey,
-          stablecoin: stablecoinPda,
-          freezerRole: freezerRolePda,
           mint: mint.publicKey,
-          targetAccount: ata,
+          tokenAccount: ata,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -292,10 +278,8 @@ describe("SSS-2 Compliant Preset", () => {
           .freezeAccount()
           .accounts({
             freezer: user2.publicKey,
-            stablecoin: stablecoinPda,
-            freezerRole: fakeRole,
             mint: mint.publicKey,
-            targetAccount: ata,
+            tokenAccount: ata,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user2])
@@ -324,15 +308,11 @@ describe("SSS-2 Compliant Preset", () => {
       );
 
       await coreProgram.methods
-        .grantRole({ roleType: { blacklister: {} } })
-        .accounts({
+        .grantRole({ blacklister: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: blacklisterRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
     });
@@ -349,14 +329,10 @@ describe("SSS-2 Compliant Preset", () => {
 
       await coreProgram.methods
         .blacklistAdd("OFAC sanctioned entity")
-        .accounts({
+        .accountsPartial({
           blacklister: user1.publicKey,
-          payer: user1.publicKey,
           stablecoin: stablecoinPda,
-          blacklisterRole: blacklisterRolePda,
-          blacklistEntry,
-          target: user3.publicKey,
-          systemProgram: SystemProgram.programId,
+          address: user3.publicKey,
         })
         .signers([user1])
         .rpc();
@@ -381,12 +357,10 @@ describe("SSS-2 Compliant Preset", () => {
 
       await coreProgram.methods
         .blacklistRemove()
-        .accounts({
+        .accountsPartial({
           blacklister: user1.publicKey,
           stablecoin: stablecoinPda,
-          blacklisterRole: blacklisterRolePda,
-          blacklistEntry,
-          target: user3.publicKey,
+          address: user3.publicKey,
         })
         .signers([user1])
         .rpc();
@@ -424,14 +398,10 @@ describe("SSS-2 Compliant Preset", () => {
       try {
         await coreProgram.methods
           .blacklistAdd("bad")
-          .accounts({
+          .accountsPartial({
             blacklister: user2.publicKey,
-            payer: user2.publicKey,
             stablecoin: stablecoinPda,
-            blacklisterRole: fakeBl,
-            blacklistEntry,
-            target: user3.publicKey,
-            systemProgram: SystemProgram.programId,
+            address: user3.publicKey,
           })
           .signers([user2])
           .rpc();
@@ -459,15 +429,11 @@ describe("SSS-2 Compliant Preset", () => {
       );
 
       await coreProgram.methods
-        .grantRole({ roleType: { seizer: {} } })
-        .accounts({
+        .grantRole({ seizer: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: seizerRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
     });
@@ -504,11 +470,8 @@ describe("SSS-2 Compliant Preset", () => {
         .mintTokens(new anchor.BN(500_000))
         .accounts({
           minter: authority.publicKey,
-          stablecoin: stablecoinPda,
-          minterRole,
-          minterQuota: quotaPda,
           mint: mint.publicKey,
-          destination: fromAta,
+          recipientTokenAccount: fromAta,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .rpc();
@@ -528,10 +491,8 @@ describe("SSS-2 Compliant Preset", () => {
         .freezeAccount()
         .accounts({
           freezer: user1.publicKey,
-          stablecoin: stablecoinPda,
-          freezerRole,
           mint: mint.publicKey,
-          targetAccount: fromAta,
+          tokenAccount: fromAta,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -565,11 +526,9 @@ describe("SSS-2 Compliant Preset", () => {
         .seize(new anchor.BN(250_000))
         .accounts({
           seizer: user1.publicKey,
-          stablecoin: stablecoinPda,
-          seizerRole: seizerRolePda,
           mint: mint.publicKey,
-          from: fromAta,
-          to: toAta,
+          fromAccount: fromAta,
+          treasuryAccount: toAta,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -625,11 +584,9 @@ describe("SSS-2 Compliant Preset", () => {
           .seize(new anchor.BN(1))
           .accounts({
             seizer: user1.publicKey,
-            stablecoin: stablecoinPda,
-            seizerRole: seizerRolePda,
             mint: mint.publicKey,
-            from: ata,
-            to: toAta,
+            fromAccount: ata,
+            treasuryAccount: toAta,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user1])
@@ -668,11 +625,9 @@ describe("SSS-2 Compliant Preset", () => {
           .seize(new anchor.BN(1))
           .accounts({
             seizer: user2.publicKey,
-            stablecoin: stablecoinPda,
-            seizerRole: fakeSeizer,
             mint: mint.publicKey,
-            from: fromAta,
-            to: toAta,
+            fromAccount: fromAta,
+            treasuryAccount: toAta,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user2])
@@ -702,14 +657,10 @@ describe("SSS-2 Compliant Preset", () => {
           new anchor.BN(5_000_000), // 5 tokens per epoch
           new anchor.BN(86400) // 1 day epoch
         )
-        .accounts({
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          minterQuota: quotaPda,
           minter: user1.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .rpc();
 
@@ -748,10 +699,8 @@ describe("SSS-2 Compliant Preset", () => {
           .thawAccount()
           .accounts({
             freezer: user1.publicKey,
-            stablecoin: stablecoinPda,
-            freezerRole,
             mint: mint.publicKey,
-            targetAccount: ata,
+            tokenAccount: ata,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user1])

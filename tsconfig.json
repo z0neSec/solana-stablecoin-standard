@@ -16,6 +16,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["tests/**/*.ts", "sdk/**/*.ts", "scripts/**/*.ts"],
-  "exclude": ["node_modules", "dist", "target"]
+  "references": [
+    { "path": "./sdk" },
+    { "path": "./cli" }
+  ],
+  "include": ["tests/**/*.ts", "scripts/**/*.ts", "target/types/**/*.ts"],
+  "exclude": ["node_modules", "dist", "target/deploy", "target/verifiable", "target/debug", "sdk", "cli"]
 }

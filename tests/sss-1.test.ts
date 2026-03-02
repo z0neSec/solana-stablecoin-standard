@@ -14,6 +14,7 @@ import {
   getMint,
 } from "@solana/spl-token";
 import { expect } from "chai";
+import { SssCore } from "../target/types/sss_core";
 
 // We use Anchor workspace to load the program
 const provider = anchor.AnchorProvider.env();
@@ -21,7 +22,7 @@ anchor.setProvider(provider);
 
 // Program IDL will be loaded from target/idl after build
 // For now, use workspace reference
-const program = anchor.workspace.SssCore as Program<any>;
+const program = anchor.workspace.SssCore as Program<SssCore>;
 
 describe("SSS-1 Minimal Preset", () => {
   const authority = provider.wallet;
@@ -72,18 +73,17 @@ describe("SSS-1 Minimal Preset", () => {
           symbol: "TUSD",
           uri: "",
           decimals: 6,
-          features: 0, // SSS-1: no extensions
           supplyCap: new anchor.BN(0), // unlimited
+          enablePermanentDelegate: false,
+          enableTransferHook: false,
+          enableDefaultFrozen: false,
+          enableConfidentialTransfers: false,
+          transferHookProgram: null,
         })
         .accounts({
-          payer: authority.publicKey,
           authority: authority.publicKey,
           mint: mint.publicKey,
-          stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .signers([mint])
         .rpc();
@@ -121,18 +121,17 @@ describe("SSS-1 Minimal Preset", () => {
             symbol: "BAD",
             uri: "",
             decimals: 18,
-            features: 0,
             supplyCap: new anchor.BN(0),
+            enablePermanentDelegate: false,
+            enableTransferHook: false,
+            enableDefaultFrozen: false,
+            enableConfidentialTransfers: false,
+            transferHookProgram: null,
           })
           .accounts({
-            payer: authority.publicKey,
             authority: authority.publicKey,
             mint: badMint.publicKey,
-            stablecoin: badPda,
-            masterRole: badRole,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
           })
           .signers([badMint])
           .rpc();
@@ -165,24 +164,23 @@ describe("SSS-1 Minimal Preset", () => {
             symbol: "OK",
             uri: "",
             decimals: 6,
-            features: 0,
             supplyCap: new anchor.BN(0),
+            enablePermanentDelegate: false,
+            enableTransferHook: false,
+            enableDefaultFrozen: false,
+            enableConfidentialTransfers: false,
+            transferHookProgram: null,
           })
           .accounts({
-            payer: authority.publicKey,
             authority: authority.publicKey,
             mint: badMint.publicKey,
-            stablecoin: badPda,
-            masterRole: badRole,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
-            systemProgram: SystemProgram.programId,
-            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
           })
           .signers([badMint])
           .rpc();
         expect.fail("Should have thrown");
       } catch (err: any) {
-        expect(err.error?.errorCode?.code).to.equal("NameTooLong");
+        expect(err.error?.errorCode?.code).to.equal("StringTooLong");
       }
     });
   });
@@ -202,15 +200,11 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       await program.methods
-        .grantRole({ roleType: { minter: {} } })
-        .accounts({
+        .grantRole({ minter: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: minterRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
 
@@ -231,15 +225,11 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       await program.methods
-        .grantRole({ roleType: { burner: {} } })
-        .accounts({
+        .grantRole({ burner: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: burnerRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
 
@@ -269,15 +259,11 @@ describe("SSS-1 Minimal Preset", () => {
 
       try {
         await program.methods
-          .grantRole({ roleType: { minter: {} } })
-          .accounts({
+          .grantRole({ minter: {} })
+          .accountsPartial({
             authority: user1.publicKey,
-            payer: user1.publicKey,
             stablecoin: stablecoinPda,
-            masterRole: fakeMasterPda,
-            targetRole: badRolePda,
-            target: user2.publicKey,
-            systemProgram: SystemProgram.programId,
+            grantee: user2.publicKey,
           })
           .signers([user1])
           .rpc();
@@ -301,26 +287,20 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       await program.methods
-        .grantRole({ roleType: { minter: {} } })
-        .accounts({
+        .grantRole({ minter: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: tempRolePda,
-          target: user2.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user2.publicKey,
         })
         .rpc();
 
       await program.methods
-        .revokeRole({ roleType: { minter: {} } })
-        .accounts({
+        .revokeRole({ minter: {} })
+        .accountsPartial({
           authority: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: tempRolePda,
-          target: user2.publicKey,
+          revokee: user2.publicKey,
         })
         .rpc();
 
@@ -379,11 +359,8 @@ describe("SSS-1 Minimal Preset", () => {
         .mintTokens(new anchor.BN(1_000_000))
         .accounts({
           minter: user1.publicKey,
-          stablecoin: stablecoinPda,
-          minterRole: minterRolePda,
-          minterQuota: quotaPda,
           mint: mint.publicKey,
-          destination: ata,
+          recipientTokenAccount: ata,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -428,11 +405,8 @@ describe("SSS-1 Minimal Preset", () => {
           .mintTokens(new anchor.BN(1_000))
           .accounts({
             minter: user2.publicKey,
-            stablecoin: stablecoinPda,
-            minterRole: fakeRolePda,
-            minterQuota: quotaPda,
             mint: mint.publicKey,
-            destination: ata,
+            recipientTokenAccount: ata,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user2])
@@ -482,10 +456,8 @@ describe("SSS-1 Minimal Preset", () => {
         .burnTokens(new anchor.BN(100_000))
         .accounts({
           burner: user1.publicKey,
-          stablecoin: stablecoinPda,
-          burnerRole: burnerRolePda,
           mint: mint.publicKey,
-          from: ata,
+          tokenAccount: ata,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
         })
         .signers([user1])
@@ -524,24 +496,19 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       await program.methods
-        .grantRole({ roleType: { pauser: {} } })
-        .accounts({
+        .grantRole({ pauser: {} })
+        .accountsPartial({
           authority: authority.publicKey,
-          payer: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          targetRole: pauserRolePda,
-          target: user1.publicKey,
-          systemProgram: SystemProgram.programId,
+          grantee: user1.publicKey,
         })
         .rpc();
 
       await program.methods
         .pause()
-        .accounts({
+        .accountsPartial({
           pauser: user1.publicKey,
           stablecoin: stablecoinPda,
-          pauserRole: pauserRolePda,
         })
         .signers([user1])
         .rpc();
@@ -580,18 +547,15 @@ describe("SSS-1 Minimal Preset", () => {
           .mintTokens(new anchor.BN(1_000))
           .accounts({
             minter: user1.publicKey,
-            stablecoin: stablecoinPda,
-            minterRole: minterRolePda,
-            minterQuota: quotaPda,
             mint: mint.publicKey,
-            destination: ata,
+            recipientTokenAccount: ata,
             tokenProgram: TOKEN_2022_PROGRAM_ID,
           })
           .signers([user1])
           .rpc();
         expect.fail("Should have thrown");
       } catch (err: any) {
-        expect(err.error?.errorCode?.code).to.equal("StablecoinPaused");
+        expect(err.error?.errorCode?.code).to.equal("Paused");
       }
     });
 
@@ -608,10 +572,9 @@ describe("SSS-1 Minimal Preset", () => {
 
       await program.methods
         .unpause()
-        .accounts({
+        .accountsPartial({
           pauser: user1.publicKey,
           stablecoin: stablecoinPda,
-          pauserRole: pauserRolePda,
         })
         .signers([user1])
         .rpc();
@@ -628,12 +591,10 @@ describe("SSS-1 Minimal Preset", () => {
       const newAuthority = Keypair.generate();
 
       await program.methods
-        .transferAuthority()
-        .accounts({
+        .transferAuthority(newAuthority.publicKey)
+        .accountsPartial({
           authority: authority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: masterRolePda,
-          newAuthority: newAuthority.publicKey,
         })
         .rpc();
 
@@ -643,16 +604,6 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       // Transfer back for subsequent tests
-      const [newMasterPda] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("role"),
-          stablecoinPda.toBuffer(),
-          newAuthority.publicKey.toBuffer(),
-          Buffer.from("master"),
-        ],
-        program.programId
-      );
-
       // Airdrop to new authority
       await provider.connection.confirmTransaction(
         await provider.connection.requestAirdrop(
@@ -662,12 +613,10 @@ describe("SSS-1 Minimal Preset", () => {
       );
 
       await program.methods
-        .transferAuthority()
-        .accounts({
+        .transferAuthority(authority.publicKey)
+        .accountsPartial({
           authority: newAuthority.publicKey,
           stablecoin: stablecoinPda,
-          masterRole: newMasterPda,
-          newAuthority: authority.publicKey,
         })
         .signers([newAuthority])
         .rpc();
@@ -699,18 +648,17 @@ describe("SSS-1 Minimal Preset", () => {
           symbol: "CAP",
           uri: "",
           decimals: 6,
-          features: 0,
           supplyCap: new anchor.BN(10_000_000),
+          enablePermanentDelegate: false,
+          enableTransferHook: false,
+          enableDefaultFrozen: false,
+          enableConfidentialTransfers: false,
+          transferHookProgram: null,
         })
         .accounts({
-          payer: authority.publicKey,
           authority: authority.publicKey,
           mint: cappedMint.publicKey,
-          stablecoin: pda,
-          masterRole: role,
           tokenProgram: TOKEN_2022_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .signers([cappedMint])
         .rpc();

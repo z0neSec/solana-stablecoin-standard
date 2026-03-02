@@ -159,8 +159,8 @@ describe("Presets", () => {
 
 describe("Errors", () => {
   it("creates SSSError from code", () => {
-    const err = new SSSError(SSSErrorCode.StablecoinPaused);
-    expect(err.code).to.equal(6001);
+    const err = new SSSError(SSSErrorCode.Paused);
+    expect(err.code).to.equal(6009);
     expect(err.message).to.contain("paused");
     expect(err.programError).to.be.true;
   });

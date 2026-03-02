@@ -135,7 +135,24 @@ pub fn initialize_handler(ctx: Context<Initialize>, params: InitializeParams) ->
         ExtensionType::try_calculate_account_len::<spl_token_2022::state::Mint>(&extensions)
             .map_err(|_| SSSError::MathOverflow)?;
 
-    let lamports = Rent::get()?.minimum_balance(mint_account_size);
+    // The metadata content (name, symbol, URI) is stored inline in the
+    // mint account as a TLV record.  add the content length plus a
+    // fixed overhead for the TLV discriminator + length fields.
+    //   TLV header: 4 (type) + 4 (length) = 8
+    //   TokenMetadata fixed overhead: update_authority(32) + mint(32)
+    //                                  + 4+len(name) + 4+len(symbol)
+    //                                  + 4+len(uri) + 4 (additional_metadata vec len)
+    let metadata_content_size: usize = 8  // TLV header
+        + 32  // update_authority
+        + 32  // mint
+        + 4 + params.name.len()
+        + 4 + params.symbol.len()
+        + 4 + params.uri.len()
+        + 4;  // additional_metadata (empty vec)
+
+    let total_mint_size = mint_account_size + metadata_content_size;
+
+    let lamports = Rent::get()?.minimum_balance(total_mint_size);
 
     // ─── Create mint account ─────────────────────────────────────────
     anchor_lang::system_program::create_account(
@@ -147,7 +164,7 @@ pub fn initialize_handler(ctx: Context<Initialize>, params: InitializeParams) ->
             },
         ),
         lamports,
-        mint_account_size as u64,
+        total_mint_size as u64,
         ctx.accounts.token_program.key,
     )?;
 

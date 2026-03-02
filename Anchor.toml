@@ -1,0 +1,29 @@
+[features]
+resolution = true
+seeds = true
+skip-lint = false
+
+[programs.localnet]
+sss_core = "CoreSSS111111111111111111111111111111111111"
+sss_transfer_hook = "HookSSS111111111111111111111111111111111111"
+
+[programs.devnet]
+sss_core = "CoreSSS111111111111111111111111111111111111"
+sss_transfer_hook = "HookSSS111111111111111111111111111111111111"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.test.ts"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+
+[test.validator]
+url = "https://api.devnet.solana.com"

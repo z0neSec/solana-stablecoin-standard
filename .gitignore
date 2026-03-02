@@ -1,0 +1,34 @@
+# Anchor
+target/
+.anchor/
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# Rust
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+test-ledger/
+.test-ledger/
+
+# Docker
+docker-compose.override.yml
+
+# Backend
+backend/data/
+*.sqlite
+*.sqlite3

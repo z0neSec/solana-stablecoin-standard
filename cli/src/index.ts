@@ -44,9 +44,19 @@ function getClient(opts: any): SolanaStablecoin {
     connection,
     wallet: {
       publicKey: keypair.publicKey,
-      signTransaction: async (tx) => {
-        tx.partialSign(keypair);
+      signTransaction: async <T extends import("@solana/web3.js").Transaction | import("@solana/web3.js").VersionedTransaction>(tx: T): Promise<T> => {
+        if ('partialSign' in tx) {
+          (tx as import("@solana/web3.js").Transaction).partialSign(keypair);
+        }
         return tx;
+      },
+      signAllTransactions: async <T extends import("@solana/web3.js").Transaction | import("@solana/web3.js").VersionedTransaction>(txs: T[]): Promise<T[]> => {
+        for (const tx of txs) {
+          if ('partialSign' in tx) {
+            (tx as import("@solana/web3.js").Transaction).partialSign(keypair);
+          }
+        }
+        return txs;
       },
     },
   });

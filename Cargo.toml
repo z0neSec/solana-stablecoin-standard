@@ -13,7 +13,11 @@ codegen-units = 1
 [profile.test]
 opt-level = 0
 
-# Pin to avoid edition2024 incompatibility with SBF platform-tools v1.51 (rustc 1.84)
+# Pin crates for compatibility:
+# - blake3/constant_time_eq: avoid edition2024 (SBF rustc 1.84 doesn't support it)
+# - proc-macro-crate: use 3.2.0 which depends on toml_edit 0.22 → indexmap <2.8
+#   (Docker image backpackapp/build:v0.31.0 ships rustc 1.79 which can't compile indexmap ≥2.8)
 [workspace.dependencies]
 blake3 = "=1.5.5"
 constant_time_eq = "=0.3.1"
+proc-macro-crate = "=3.2.0"

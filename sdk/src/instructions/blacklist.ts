@@ -10,7 +10,6 @@ import * as borsh from "@coral-xyz/borsh";
 export interface BlacklistInstructionParams {
   mint: PublicKey;
   blacklister: PublicKey;
-  payer: PublicKey;
   target: PublicKey;
   reason?: string;
   programId?: PublicKey;

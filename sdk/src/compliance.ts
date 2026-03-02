@@ -38,7 +38,6 @@ export class ComplianceModule {
         createBlacklistAddInstruction({
           mint,
           blacklister: this.client["wallet"].publicKey,
-          payer: this.client["wallet"].publicKey,
           target,
           reason,
           programId: this.client.programId,
@@ -59,7 +58,6 @@ export class ComplianceModule {
         createBlacklistRemoveInstruction({
           mint,
           blacklister: this.client["wallet"].publicKey,
-          payer: this.client["wallet"].publicKey,
           target,
           programId: this.client.programId,
         })
@@ -98,7 +96,6 @@ export class ComplianceModule {
       createBlacklistAddInstruction({
         mint,
         blacklister: wallet.publicKey,
-        payer: wallet.publicKey,
         target,
         reason: reason ?? "Regulatory enforcement",
         programId,
@@ -136,7 +133,6 @@ export class ComplianceModule {
       createBlacklistRemoveInstruction({
         mint,
         blacklister: wallet.publicKey,
-        payer: wallet.publicKey,
         target,
         programId,
       })

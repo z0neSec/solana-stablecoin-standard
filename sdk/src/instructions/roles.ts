@@ -12,7 +12,6 @@ import * as borsh from "@coral-xyz/borsh";
 export interface GrantRoleInstructionParams {
   mint: PublicKey;
   authority: PublicKey;
-  payer: PublicKey;
   target: PublicKey;
   roleType: RoleType;
   programId?: PublicKey;
@@ -116,7 +115,6 @@ export function createRevokeRoleInstruction(
 export interface UpdateMinterQuotaInstructionParams {
   mint: PublicKey;
   authority: PublicKey;
-  payer: PublicKey;
   minter: PublicKey;
   quotaPerEpoch: bigint;
   epochDuration: bigint;

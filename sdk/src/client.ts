@@ -252,7 +252,6 @@ export class SolanaStablecoin {
     const ix = createGrantRoleInstruction({
       mint,
       authority: this.wallet.publicKey,
-      payer: this.wallet.publicKey,
       target,
       roleType,
       programId: this.programId,
@@ -284,7 +283,6 @@ export class SolanaStablecoin {
     const ix = createUpdateMinterQuotaInstruction({
       mint,
       authority: this.wallet.publicKey,
-      payer: this.wallet.publicKey,
       minter,
       quotaPerEpoch,
       epochDuration,
